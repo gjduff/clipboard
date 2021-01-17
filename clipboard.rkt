@@ -17,8 +17,12 @@
 ;   https://groups.google.com/g/racket-users/c/QmvqWtm1x28
 
 
+(define NUM-COLS 3)
+
+
 ;; read lines of config file into a list of strings
 (define clip-lines (file->lines "config/clipboard_txt.txt"))
+
 
 
 ; top level window.
@@ -28,13 +32,25 @@
 
 
 (define msg (new message% [parent win-frame]
-                          [label "default ---"]))
+                          [label "Press Buttons to Copy to Clipboard"]))
 
+; arrange window so buttons will occupy three columns
+(define panel0 (new horizontal-panel% [parent win-frame]))
+(define panel1 (new vertical-panel% [parent panel0]))
+(define panel1a (new vertical-panel% [parent panel0]))
+(define panel2 (new vertical-panel% [parent panel0]))
+(define panel2a (new vertical-panel% [parent panel0]))
+(define panel3 (new vertical-panel% [parent panel0]))
+
+(define msg1a (new message% [parent panel1a]
+                          [label "    "]))
+(define msg2a (new message% [parent panel2a]
+                          [label "    "]))
 
 
 ; make a new button whose parent is the top level window
-(define (make-button txt)
-  (new button% [parent win-frame]
+(define (make-button txt b-parent)
+  (new button% [parent b-parent]
        [label txt]
        [callback (lambda (button event)
                    (send the-clipboard set-clipboard-string txt 0))]))
@@ -42,17 +58,24 @@
 
 ; create all the buttons in the window by recursively adding
 ; each one to a list
-(define (all-buttons txt-list)
+(define (all-buttons txt-list b-parent)
   (cond
     [(empty? txt-list) '()]
-    [else (cons (make-button (first txt-list))
-                (all-buttons (rest txt-list)))]))
+    [else (cons (make-button (first txt-list) b-parent)
+                (all-buttons (rest txt-list) b-parent))]))
 
 
+; split the lines from the file into three lists
+(define buttons-per-col (/ (length clip-lines) NUM-COLS))
+(define clip-lines1 (take clip-lines buttons-per-col))
+(define clip-lines2 (take (drop clip-lines buttons-per-col) buttons-per-col))
+(define clip-lines3 (drop (drop clip-lines buttons-per-col) buttons-per-col))
 
 
 (define (main)
-  (all-buttons clip-lines)
+  (all-buttons clip-lines1 panel1)
+  (all-buttons clip-lines2 panel2)
+  (all-buttons clip-lines3 panel3)
   (send win-frame show #t))
 
 
