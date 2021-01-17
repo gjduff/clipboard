@@ -15,7 +15,11 @@
 ;   https://docs.racket-lang.org/reference/Filesystem.html
 ;
 ;   https://groups.google.com/g/racket-users/c/QmvqWtm1x28
-
+;
+;   To compile to an executable, use:
+;       "c:\Program Files\Racket\raco" exe --embed-dlls --gui clipboard.rkt
+;
+;
 
 (define NUM-COLS 3)
 
@@ -49,6 +53,8 @@
 
 
 ; make a new button whose parent is the top level window
+; the button is assigned an action sending the text of the txt
+; argument to the clipboard
 (define (make-button txt b-parent)
   (new button% [parent b-parent]
        [label txt]
@@ -66,7 +72,7 @@
 
 
 ; split the lines from the file into three lists
-(define buttons-per-col (/ (length clip-lines) NUM-COLS))
+(define buttons-per-col (ceiling (/ (length clip-lines) NUM-COLS)))
 (define clip-lines1 (take clip-lines buttons-per-col))
 (define clip-lines2 (take (drop clip-lines buttons-per-col) buttons-per-col))
 (define clip-lines3 (drop (drop clip-lines buttons-per-col) buttons-per-col))
