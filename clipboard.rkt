@@ -40,16 +40,21 @@
 
 ; arrange window so buttons will occupy three columns
 (define panel0 (new horizontal-panel% [parent win-frame]))
+
 (define panel1 (new vertical-panel% [parent panel0]))
 (define panel1a (new vertical-panel% [parent panel0]))
-(define panel2 (new vertical-panel% [parent panel0]))
-(define panel2a (new vertical-panel% [parent panel0]))
-(define panel3 (new vertical-panel% [parent panel0]))
-
 (define msg1a (new message% [parent panel1a]
                           [label "    "]))
+
+(define panel2 (new vertical-panel% [parent panel0]))
+(define panel2a (new vertical-panel% [parent panel0]))
 (define msg2a (new message% [parent panel2a]
                           [label "    "]))
+
+(define panel3 (new vertical-panel% [parent panel0]))
+
+
+
 
 
 ; make a new button whose parent is the top level window
@@ -57,9 +62,9 @@
 ; argument to the clipboard
 (define (make-button txt b-parent)
   (new button% [parent b-parent]
-       [label txt]
-       [callback (lambda (button event)
-                   (send the-clipboard set-clipboard-string txt 0))]))
+               [label txt]
+               [callback (lambda (button event)
+                           (send the-clipboard set-clipboard-string txt 0))]))
 
 
 ; create all the buttons in the window by recursively adding
@@ -78,11 +83,28 @@
 (define clip-lines3 (drop (drop clip-lines buttons-per-col) buttons-per-col))
 
 
+; --- experiment
+(define my-textbox
+  (new text-field% [parent win-frame]
+                   [label "Text"]
+                   [init-value "text"]))
+
+(define my-button
+  (new button% [parent win-frame]
+               [label "getText"]
+               [callback (lambda (button event)
+                                 (send my-button set-label (send my-textbox get-value))
+                                 )]))
+; ---
+
+
 (define (main)
   (all-buttons clip-lines1 panel1)
   (all-buttons clip-lines2 panel2)
   (all-buttons clip-lines3 panel3)
+  ;(make-textbox)
   (send win-frame show #t))
+
 
 
 (main)
