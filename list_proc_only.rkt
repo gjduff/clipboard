@@ -21,26 +21,16 @@
 ;
 ;
 
-(define NUM-COLS 3)
 
 
 ;; read lines of config file into a list of strings
 (define clip-lines (file->lines "config/clipboard_txt.txt"))
 
 
-
-; split the lines from the file into three lists
-(define buttons-per-col (ceiling (/ (length clip-lines) NUM-COLS)))
-(define clip-lines1 (take clip-lines buttons-per-col))
-(define clip-lines2 (take (drop clip-lines buttons-per-col) buttons-per-col))
-(define clip-lines3 (drop (drop clip-lines buttons-per-col) buttons-per-col))
-
-
-
 ; make a list of lists of length n out of a single list
 (define (chunkify list n)
   (cond
-    [(< (length list) n) list]
+    [(< (length list) n) (cons list '())]
     [else (cons (take list n) (chunkify (drop list n) n))]))
 
 
@@ -50,5 +40,8 @@
     (chunkify list n2)))
 
 
+; the list of lists of strings
+(define columns-list (chunkify2 clip-lines 3))
 
-  
+
+

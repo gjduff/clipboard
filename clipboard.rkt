@@ -21,43 +21,54 @@
 ;
 ;
 
-(define NUM-COLS 3)
+(define NUM-COLS 4)
 
+(define win-frame (new frame% [label "example"]
+                              [style (list 'float)]))
+
+(define msg (new message% [parent win-frame]
+                          [label "Press Buttons to Copy to Clipboard"]))
+
+(define panel0 (new horizontal-panel% [parent win-frame]))
+
+
+
+;----------------------------------------------------------
+;  Process the file into a list of NUM-COLS  
+;  lists of strings                
+;----------------------------------------------------------
 
 ;; read lines of config file into a list of strings
 (define clip-lines (file->lines "config/clipboard_txt.txt"))
 
 
+; make a list of lists of length n out of a single list
+(define (chunkify list n)
+  (cond
+    [(< (length list) n) (cons list '())]
+    [else (cons (take list n) (chunkify (drop list n) n))]))
 
-; top level window.
-; the 'float style makes it an always on top type of window
-(define win-frame (new frame% [label "example"]
-                              [style (list 'float)]))
+
+; make a list of n lists out of a single list
+(define (chunkify2 list n)
+  (let* ([n2 (ceiling (/ (length list) n))])
+    (chunkify list n2)))
 
 
-(define msg (new message% [parent win-frame]
-                          [label "Press Buttons to Copy to Clipboard"]))
-
-; arrange window so buttons will occupy three columns
-(define panel0 (new horizontal-panel% [parent win-frame]))
-
-(define panel1 (new vertical-panel% [parent panel0]))
-(define panel1a (new vertical-panel% [parent panel0]))
-(define msg1a (new message% [parent panel1a]
-                          [label "    "]))
-
-(define panel2 (new vertical-panel% [parent panel0]))
-(define panel2a (new vertical-panel% [parent panel0]))
-(define msg2a (new message% [parent panel2a]
-                          [label "    "]))
-
-(define panel3 (new vertical-panel% [parent panel0]))
+; the list of lists of strings
+(define columns-list (chunkify2 clip-lines NUM-COLS))
 
 
 
+;----------------------------------------------------------
+;  build GUI window contents with a column for each
+;  list within the list of lists of strings.
+;  the column will contain a button for each string
+;  of that inner list. the button places that text onto
+;  the windows clipboard
+;----------------------------------------------------------
 
-
-; make a new button whose parent is the top level window
+; make a new button whose parent is the first arg
 ; the button is assigned an action sending the text of the txt
 ; argument to the clipboard
 (define (make-button txt b-parent)
@@ -67,7 +78,7 @@
                            (send the-clipboard set-clipboard-string txt 0))]))
 
 
-; create all the buttons in the window by recursively adding
+; create all the buttons in a panel by recursively adding
 ; each one to a list
 (define (all-buttons txt-list b-parent)
   (cond
@@ -76,40 +87,26 @@
                 (all-buttons (rest txt-list) b-parent))]))
 
 
-; split the lines from the file into three lists
-(define buttons-per-col (ceiling (/ (length clip-lines) NUM-COLS)))
-(define clip-lines1 (take clip-lines buttons-per-col))
-(define clip-lines2 (take (drop clip-lines buttons-per-col) buttons-per-col))
-(define clip-lines3 (drop (drop clip-lines buttons-per-col) buttons-per-col))
+; make a vertical panel containing buttons for every item
+; in a list of strings
+(define (make-panel txt-list chk-empty)
+  (let* ([p (new vertical-panel% [parent panel0])]
+         [b (all-buttons txt-list p)]
+         [s (if (empty? chk-empty) #f (new vertical-panel% [parent panel0]))]
+         [m (if (empty? chk-empty) #f (new message% [parent s]
+                                                    [label "          "]))])
+    p))
+    
+    
+; for each list in the "list of lists", make a single column
+; (panel with buttons)
+(define (make-columns lst)
+  (cond [(empty? lst) '()]
+        [else (cons (make-panel (first lst) (rest lst))
+                    (make-columns (rest lst)))]))
 
 
-; --- experiment
-(define my-textbox
-  (new text-field% [parent win-frame]
-                   [label "Text"]
-                   [init-value "text"]))
-
-(define my-button
-  (new button% [parent win-frame]
-               [label "getText"]
-               [callback (lambda (button event)
-                                 (send my-button set-label (send my-textbox get-value))
-                                 )]))
-; ---
-
+(make-columns columns-list)
 
 (define (main)
-  (all-buttons clip-lines1 panel1)
-  (all-buttons clip-lines2 panel2)
-  (all-buttons clip-lines3 panel3)
-  ;(make-textbox)
   (send win-frame show #t))
-
-
-
-(main)
-
-
-
-
-
